@@ -16,17 +16,31 @@ unzip(zipfile = "data/FNEI_data.zip", exdir = "data/")
 NEI <- readRDS("data/summarySCC_PM25.rds")
 SCC <- readRDS("data/Source_Classification_Code.rds")
 
+# Find all SCC values that contain 'coal' in the EI.Sector
 coal_idx <- grep("Coal$", SCC$EI.Sector, ignore.case = T, value = F)
 scc_coal_comb <- SCC[coal_idx,]$SCC
-names(scc_coal_comb) <- factor(SCC[coal_idx,]$EI.Sector)
 
+# Subset data to all rows that have an SCC value that contain 'coal' in the EI.Sector
 NEI.coal <- subset(NEI, SCC %in% scc_coal_comb)
+NEI.coal <- merge(NEI.coal, SCC[c("SCC", "EI.Sector")], by = "SCC")
 
-total_emissions <- data.frame(Emissions=tapply(NEI.coal$Emissions, NEI.coal$year, sum))
+# Sum emissions by year
+total_emissions <- tapply(NEI.coal$Emissions, NEI.coal$year, sum)
 
-ggplot(total_emissions, aes(as.numeric(rownames(Emissions)), Emissions)) + 
-  geom_line() + 
-  scale_x_continuous(breaks=c(1999,2002,2005,2008)) + 
-  geom_smooth(method="lm", se = F)
+# Open PNG device
+png(filename = "plot4.png")
 
+options(scipen=10)
 
+# Plot data
+ggplot(data=NULL, aes(names(total_emissions), total_emissions)) + 
+  geom_bar(stat="identity", fill="dark blue") +
+  ylim(c(0,max(total_emissions))) +
+  ylab("PM2.5 Emission (tons)") +
+  xlab("Year") +
+  ggtitle("US PM2.5 emissions from coal combustion-related sources totals") + 
+  geom_text(aes(x=names(total_emissions), y=total_emissions, 
+                label=prettyNum(total_emissions, big.mark = ","), vjust=-0.5), size=4)
+
+# Flush device to file
+dev.off()
