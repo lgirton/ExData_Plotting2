@@ -38,9 +38,10 @@ ggplot(data=NULL, aes(names(total_emissions), total_emissions)) +
   ylim(c(0,max(total_emissions))) +
   ylab("PM2.5 Emission (tons)") +
   xlab("Year") +
-  ggtitle("US PM2.5 emissions from coal combustion-related sources totals") + 
+  ggtitle("US Total PM2.5 emissions 1998-2008\n(Coal combustion-related sources totals)") + 
   geom_text(aes(x=names(total_emissions), y=total_emissions, 
-                label=prettyNum(total_emissions, big.mark = ","), vjust=-0.5), size=4)
+                label=prettyNum(total_emissions, big.mark = ","), vjust=-0.5), size=4) + 
+  theme(plot.title=element_text(vjust=2))
 
 # Flush device to file
 dev.off()
